@@ -1,0 +1,53 @@
+project(
+  'logging',
+  'cpp',
+  default_options : [
+    'buildtype=release',
+    'cpp_std=c++17',
+    'warning_level=1'
+  ]
+)
+
+logging_headers = [
+  'include/logging/level.h',
+  'include/logging/log.h',
+  'include/logging/logger.h',
+  'include/logging/sinks/sink.h',
+  'include/logging/sinks/cerr.h',
+  'include/logging/sinks/cout.h'
+]
+
+install_headers(
+  logging_headers,
+  subdir : 'logging'
+)
+
+logging_include_directories = include_directories('include')
+
+logging_sources = [
+  'src/level.cpp',
+  'src/log.cpp',
+  'src/logger.cpp',
+  'src/sinks/sink.cpp',
+  'src/sinks/cerr.cpp',
+  'src/sinks/cout.cpp'
+]
+
+logging_library = static_library(
+  'logging',
+  logging_sources,
+  include_directories : logging_include_directories
+)
+
+logging_dep = declare_dependency(
+  include_directories : logging_include_directories,
+  link_with : logging_library
+)
+
+logging_test = executable(
+  'logging',
+  'test/logging.cpp',
+  include_directories : logging_include_directories,
+  link_with : logging_library,
+  dependencies : dependency('threads')
+)
