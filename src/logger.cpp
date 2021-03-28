@@ -66,10 +66,12 @@ void logger::stop()
 void logger::write(const std::string& sink_name, const logging::level level, const std::string& message) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!sinks_.empty()) {
-    auto it = sinks_.find(sink_name);
-    if (it != sinks_.end()) {
-      logs_.emplace(std::make_tuple(it->second, level, message));
-      write_condition_.notify_one();
+    auto search = sinks_.find(sink_name);
+    if (search != sinks_.end()) {
+      if (search->second->check_severity_level(level)) {
+        logs_.emplace(std::make_tuple(search->second, level, message));
+        write_condition_.notify_one();
+      }
     }
   }
 }

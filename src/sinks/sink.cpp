@@ -14,10 +14,22 @@ std::string sink::name() const
   return name_;
 }
 
+logging::level sink::severity_level() const
+{
+  std::lock_guard<std::mutex> lock(mutex_);
+  return severity_level_;
+}
+
 void sink::set_severity_level(const logging::level level)
 {
   std::lock_guard<std::mutex> lock(mutex_);
   severity_level_ = level;
+}
+
+bool sink::check_severity_level(const logging::level level) const
+{
+  std::lock_guard<std::mutex> lock(mutex_);
+  return severity_level_ != logging::level::none && severity_level_ <= level;
 }
 
 }
