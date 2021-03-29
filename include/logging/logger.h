@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 #include "logging/level.h"
+#include "logging/record.h"
 #include "logging/sinks/sink.h"
 
 namespace logging {
@@ -24,7 +25,7 @@ public:
   static void destroy();
   void start();
   void stop();
-  void write(const std::string& sink_name, const logging::level level, const std::string& message);
+  void handle(const std::string& sink_name, const logging::record& record);
   void register_sink(logging::sinks::sink_ptr sink);
   void deregister_sink(logging::sinks::sink_ptr sink);
   void deregister_sink(const std::string& sink_name);
@@ -41,7 +42,7 @@ private:
   std::thread dispatcher_;
   std::mutex mutex_;
   std::condition_variable write_condition_;
-  std::queue<std::tuple<logging::sinks::sink_ptr,logging::level,std::string>> logs_;
+  std::queue<std::tuple<logging::sinks::sink_ptr,logging::record>> records_;
   std::unordered_map<std::string,logging::sinks::sink_ptr> sinks_;
 };
 

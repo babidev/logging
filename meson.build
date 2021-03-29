@@ -12,6 +12,7 @@ logging_headers = [
   'include/logging/level.h',
   'include/logging/log.h',
   'include/logging/logger.h',
+  'include/logging/record.h',
   'include/logging/sinks/sink.h',
   'include/logging/sinks/cerr.h',
   'include/logging/sinks/cout.h'

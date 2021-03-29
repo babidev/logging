@@ -4,7 +4,7 @@ namespace logging {
 namespace sinks {
 
 sink::sink(const std::string& name, const logging::level level)
-  : name_{name}, severity_level_{level}
+  : name_{name}, level_{level}
 {
 }
 
@@ -14,22 +14,22 @@ std::string sink::name() const
   return name_;
 }
 
-logging::level sink::severity_level() const
+logging::level sink::level() const
 {
   std::lock_guard<std::mutex> lock(mutex_);
-  return severity_level_;
+  return level_;
 }
 
-void sink::set_severity_level(const logging::level level)
+void sink::set_level(const logging::level level)
 {
   std::lock_guard<std::mutex> lock(mutex_);
-  severity_level_ = level;
+  level_ = level;
 }
 
-bool sink::check_severity_level(const logging::level level) const
+bool sink::check_level(const logging::level level) const
 {
   std::lock_guard<std::mutex> lock(mutex_);
-  return severity_level_ != logging::level::none && severity_level_ <= level;
+  return level_ != logging::level::none && level_ <= level;
 }
 
 }

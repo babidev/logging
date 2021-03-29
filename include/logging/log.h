@@ -8,11 +8,11 @@
 
 namespace logging {
 
-class log
+class log final
 {
 public:
   log(const std::string& sink_name, const logging::level level);
-  virtual ~log();
+  ~log();
 
   template<typename T>
   log& operator<<(const T& value) {

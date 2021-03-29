@@ -63,13 +63,13 @@ void logger::stop()
   }
 }
 
-void logger::write(const std::string& sink_name, const logging::level level, const std::string& message) {
+void logger::handle(const std::string& sink_name, const logging::record& record) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!sinks_.empty()) {
     auto search = sinks_.find(sink_name);
     if (search != sinks_.end()) {
-      if (search->second->check_severity_level(level)) {
-        logs_.emplace(std::make_tuple(search->second, level, message));
+      if (search->second->check_level(record.level)) {
+        records_.emplace(std::make_tuple(search->second, record));
         write_condition_.notify_one();
       }
     }
@@ -100,18 +100,18 @@ void logger::deregister_sink(const std::string& sink_name)
 void logger::dispatch()
 {
   while(running_.load(std::memory_order_acquire)) {
-    std::queue<std::tuple<logging::sinks::sink_ptr,logging::level,std::string>> buffer;
+    std::queue<std::tuple<logging::sinks::sink_ptr,logging::record>> buffer;
     {
       std::unique_lock<std::mutex> lock(mutex_);
-      if (logs_.empty()) {
+      if (records_.empty()) {
         write_condition_.wait(lock);
       }
-      std::swap(logs_, buffer);
+      std::swap(records_, buffer);
     }
     while(!buffer.empty()) {
-      auto log = buffer.front();
+      auto item = buffer.front();
       buffer.pop();
-      std::get<0>(log)->write(std::get<1>(log), std::get<2>(log));
+      std::get<0>(item)->write(std::get<1>(item));
     }
   }
 }
