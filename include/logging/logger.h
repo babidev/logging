@@ -29,6 +29,7 @@ public:
   void register_sink(logging::sinks::sink_ptr sink);
   void deregister_sink(logging::sinks::sink_ptr sink);
   void deregister_sink(const std::string& sink_name);
+  logging::sinks::sink_ptr get_sink(const std::string& sink_name);
 private:
   logger();
   logger(const logger&) = delete;

@@ -97,6 +97,18 @@ void logger::deregister_sink(const std::string& sink_name)
   sinks_.erase(sink_name);
 }
 
+logging::sinks::sink_ptr logger::get_sink(const std::string& sink_name)
+{
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (!sinks_.empty()) {
+    auto search = sinks_.find(sink_name);
+    if (search != sinks_.end()) {
+      return search->second;
+    }
+  }
+  return nullptr;
+}
+
 void logger::dispatch()
 {
   while(running_.load(std::memory_order_acquire)) {
