@@ -5,7 +5,6 @@
 namespace logging {
 
 std::atomic<logger*> logger::instance_;
-std::mutex logger::instance_guard_;
 
 logger::logger()
 {
@@ -19,25 +18,26 @@ logger::~logger()
 
 logger& logger::instance()
 {
-  logger* ptr = instance_.load(std::memory_order_acquire);
-  if (!ptr) {
-    std::lock_guard<std::mutex> lock(instance_guard_);
-    ptr = instance_.load(std::memory_order_relaxed);
-    if (!ptr) {
-      ptr = new logger();
-      instance_.store(ptr, std::memory_order_release);
+  logger* instance = instance_.load(std::memory_order_acquire);
+  if (!instance) {
+    logger* ptr = new logger();
+    if (!instance_.compare_exchange_strong(instance, ptr,
+      std::memory_order_release, std::memory_order_relaxed)) {
+      delete ptr;
     }
   }
-  return *ptr;
+  return *instance_.load(std::memory_order_relaxed);
 }
 
 void logger::destroy()
 {
-  std::lock_guard<std::mutex> lock(instance_guard_);
-  logger* ptr = instance_.load(std::memory_order_acquire);
-  if (ptr) {
-    delete ptr;
-    instance_.store(nullptr, std::memory_order_release);
+  logger* instance = instance_.load(std::memory_order_acquire);
+  if (instance) {
+    logger* ptr = nullptr;
+    if (instance_.compare_exchange_strong(instance, ptr,
+      std::memory_order_release, std::memory_order_relaxed)) {
+      delete instance;
+    }
   }
 }
 

@@ -37,8 +37,6 @@ private:
   void dispatch();
 
   static std::atomic<logger*> instance_;
-  static std::mutex instance_guard_;
-
   std::atomic<bool> running_;
   std::thread dispatcher_;
   std::mutex mutex_;
