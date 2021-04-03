@@ -108,7 +108,8 @@ logging::sinks::sink_ptr logger::get_sink(const std::string& sink_name)
 
 void logger::dispatch()
 {
-  while(running_.load(std::memory_order_acquire)) {
+  bool is_records_queue_empty = true;
+  while(running_.load(std::memory_order_acquire) || !is_records_queue_empty) {
     std::queue<std::tuple<logging::sinks::sink_ptr,logging::record>> buffer;
     {
       std::unique_lock<std::mutex> lock(mutex_);
@@ -122,6 +123,8 @@ void logger::dispatch()
       buffer.pop();
       std::get<0>(item)->write(std::get<1>(item));
     }
+    std::lock_guard<std::mutex> lock(mutex_);
+    is_records_queue_empty = records_.empty();
   }
 }
 
