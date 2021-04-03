@@ -1,8 +1,8 @@
 #ifndef LOGGING_SINKS_SINK_H
 #define LOGGING_SINKS_SINK_H
 
+#include <atomic>
 #include <memory>
-#include <mutex>
 #include <string>
 
 #include "logging/level.h"
@@ -23,8 +23,7 @@ public:
   virtual void write(const logging::record& record) = 0;
 protected:
   std::string name_;
-  logging::level level_;
-  mutable std::mutex mutex_;
+  std::atomic<unsigned> level_;
 };
 
 using sink_ptr = std::shared_ptr<logging::sinks::sink>;

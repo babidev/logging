@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-const std::unordered_map<logging::level, std::string> level_string_map {
+const std::unordered_map<logging::level,std::string> level_string_map {
   {logging::level::debug   , "DEBUG"},
   {logging::level::info    , "INFO"},
   {logging::level::warning , "WARNING"},

@@ -53,10 +53,7 @@ void logger::stop()
 {
   if (running_.load(std::memory_order_acquire)) {
     running_.store(false, std::memory_order_release);
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      write_condition_.notify_one();
-    }
+    write_condition_.notify_one();
     if (dispatcher_.joinable()) {
       dispatcher_.join();
     }
@@ -64,12 +61,13 @@ void logger::stop()
 }
 
 void logger::handle(const std::string& sink_name, const logging::record& record) {
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
   if (!sinks_.empty()) {
     auto search = sinks_.find(sink_name);
     if (search != sinks_.end()) {
       if (search->second->check_level(record.level)) {
         records_.emplace(std::make_tuple(search->second, record));
+        lock.unlock();
         write_condition_.notify_one();
       }
     }
@@ -85,9 +83,8 @@ void logger::register_sink(logging::sinks::sink_ptr sink)
 void logger::deregister_sink(logging::sinks::sink_ptr sink)
 {
   if (sink != nullptr) {
-    std::string sink_name{sink->name()};
     std::lock_guard<std::mutex> lock(mutex_);
-    sinks_.erase(sink_name);
+    sinks_.erase(sink->name());
   }
 }
 
