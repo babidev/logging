@@ -8,7 +8,7 @@ std::atomic<logger*> logger::instance_;
 
 logger::logger()
 {
-  running_.store(false, std::memory_order_relaxed);
+  state_.store(0, std::memory_order_relaxed);
 }
 
 logger::~logger()
@@ -43,24 +43,47 @@ void logger::destroy()
 
 void logger::start()
 {
-  if (!running_.load(std::memory_order_acquire)) {
-    running_.store(true, std::memory_order_release);
-    dispatcher_ = std::move(std::thread([this]() { dispatch(); }));
+  unsigned state = state_.load(std::memory_order_acquire);
+  if (state == 2 || state == 3) {
+    return;
+  }
+  while (state == 1) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    state = state_.load(std::memory_order_acquire);
+  }
+  if (state == 0) {
+    if (state_.compare_exchange_strong(state, 2, std::memory_order_relaxed)) {
+       dispatcher_ = std::move(std::thread([this]() { dispatch(); }));
+       state_.store(3, std::memory_order_release);
+    }
   }
 }
 
 void logger::stop()
 {
-  if (running_.load(std::memory_order_acquire)) {
-    running_.store(false, std::memory_order_release);
-    write_condition_.notify_one();
-    if (dispatcher_.joinable()) {
-      dispatcher_.join();
+  unsigned state = state_.load(std::memory_order_acquire);
+  if (state == 1 || state == 0) {
+    return;
+  }
+  while (state == 2) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    state = state_.load(std::memory_order_acquire);
+  }
+  if (state == 3) {
+    if (state_.compare_exchange_strong(state, 1, std::memory_order_relaxed)) {
+      write_condition_.notify_one();
+      if (dispatcher_.joinable()) {
+        dispatcher_.join();
+      }
+      state_.store(0, std::memory_order_release);
     }
   }
 }
 
 void logger::handle(const std::string& sink_name, const logging::record& record) {
+  if (state_.load(std::memory_order_acquire) < 2) {
+    return;
+  }
   std::unique_lock<std::mutex> lock(mutex_);
   if (!sinks_.empty()) {
     auto search = sinks_.find(sink_name);
@@ -109,7 +132,7 @@ logging::sinks::sink_ptr logger::get_sink(const std::string& sink_name)
 void logger::dispatch()
 {
   bool is_records_queue_empty = true;
-  while(running_.load(std::memory_order_acquire) || !is_records_queue_empty) {
+  while(state_.load(std::memory_order_acquire) > 1 || !is_records_queue_empty) {
     std::queue<std::tuple<logging::sinks::sink_ptr,logging::record>> buffer;
     {
       std::unique_lock<std::mutex> lock(mutex_);

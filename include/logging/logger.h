@@ -37,7 +37,7 @@ private:
   void dispatch();
 
   static std::atomic<logger*> instance_;
-  std::atomic<bool> running_;
+  std::atomic<unsigned> state_; //0=off, 1=stopping, 2=starting, 3=on
   std::thread dispatcher_;
   std::mutex mutex_;
   std::condition_variable write_condition_;
