@@ -31,27 +31,27 @@ void manager::destroy()
 
 void manager::register_sink(logging::sinks::sink_ptr sink)
 {
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard lock(mutex_);
   sinks_.emplace(sink->name(), sink);
 }
 
 void manager::deregister_sink(logging::sinks::sink_ptr sink)
 {
   if (sink != nullptr) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard lock(mutex_);
     sinks_.erase(sink->name());
   }
 }
 
 void manager::deregister_sink(const std::string& sink_name)
 {
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard lock(mutex_);
   sinks_.erase(sink_name);
 }
 
 logging::sinks::sink_ptr manager::get_sink(const std::string& sink_name)
 {
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::shared_lock lock(mutex_);
   if (!sinks_.empty()) {
     auto search = sinks_.find(sink_name);
     if (search != sinks_.end()) {

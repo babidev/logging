@@ -3,7 +3,7 @@
 
 #include <atomic>
 #include <memory>
-#include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <unordered_map>
 
@@ -27,7 +27,7 @@ private:
   manager& operator=(const manager&) = delete;
 
   static std::atomic<manager*> instance_;
-  std::mutex mutex_;
+  std::shared_mutex mutex_;
   std::unordered_map<std::string,logging::sinks::sink_ptr> sinks_;
 };
 
