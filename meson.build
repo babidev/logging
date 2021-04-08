@@ -11,7 +11,7 @@ project(
 logging_headers = [
   'include/logging/level.h',
   'include/logging/log.h',
-  'include/logging/logger.h',
+  'include/logging/manager.h',
   'include/logging/record.h',
   'include/logging/sinks/sink.h',
   'include/logging/sinks/cerr.h',
@@ -28,7 +28,7 @@ logging_include_directories = include_directories('include')
 logging_sources = [
   'src/level.cpp',
   'src/log.cpp',
-  'src/logger.cpp',
+  'src/manager.cpp',
   'src/sinks/sink.cpp',
   'src/sinks/cerr.cpp',
   'src/sinks/cout.cpp'

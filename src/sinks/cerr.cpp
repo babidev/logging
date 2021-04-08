@@ -17,7 +17,6 @@ void cerr::write(const logging::record& record)
                 - std::chrono::time_point_cast<std::chrono::nanoseconds>(
                   record.time_point).time_since_epoch().count();
 
-  std::cerr.precision(6);
   std::cerr << "[THREAD-ID:" << record.thread_id << "]"
             << "[" << std::fixed << 0.000001 * duration << "ms]"
             << "[" << logging::level_to_string(record.level) << "]"

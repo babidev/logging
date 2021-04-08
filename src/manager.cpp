@@ -1,26 +1,26 @@
-#include "logging/logger.h"
+#include "logging/manager.h"
 
 #include <utility>
 
 namespace logging {
 
-std::atomic<logger*> logger::instance_;
+std::atomic<manager*> manager::instance_;
 
-logger::logger()
+manager::manager()
 {
   state_.store(0, std::memory_order_relaxed);
 }
 
-logger::~logger()
+manager::~manager()
 {
   stop();
 }
 
-logger& logger::instance()
+manager& manager::instance()
 {
-  logger* instance = instance_.load(std::memory_order_acquire);
+  manager* instance = instance_.load(std::memory_order_acquire);
   if (!instance) {
-    logger* ptr = new logger();
+    manager* ptr = new manager();
     if (!instance_.compare_exchange_strong(instance, ptr,
       std::memory_order_release, std::memory_order_relaxed)) {
       delete ptr;
@@ -29,11 +29,11 @@ logger& logger::instance()
   return *instance_.load(std::memory_order_relaxed);
 }
 
-void logger::destroy()
+void manager::destroy()
 {
-  logger* instance = instance_.load(std::memory_order_acquire);
+  manager* instance = instance_.load(std::memory_order_acquire);
   if (instance) {
-    logger* ptr = nullptr;
+    manager* ptr = nullptr;
     if (instance_.compare_exchange_strong(instance, ptr,
       std::memory_order_release, std::memory_order_relaxed)) {
       delete instance;
@@ -41,7 +41,7 @@ void logger::destroy()
   }
 }
 
-void logger::start()
+void manager::start()
 {
   unsigned state = state_.load(std::memory_order_acquire);
   if (state == 2 || state == 3) {
@@ -59,7 +59,7 @@ void logger::start()
   }
 }
 
-void logger::stop()
+void manager::stop()
 {
   unsigned state = state_.load(std::memory_order_acquire);
   if (state == 1 || state == 0) {
@@ -80,7 +80,7 @@ void logger::stop()
   }
 }
 
-void logger::handle(const std::string& sink_name, const logging::record& record) {
+void manager::handle(const std::string& sink_name, const logging::record& record) {
   if (state_.load(std::memory_order_acquire) < 2) {
     return;
   }
@@ -97,13 +97,13 @@ void logger::handle(const std::string& sink_name, const logging::record& record)
   }
 }
 
-void logger::register_sink(logging::sinks::sink_ptr sink)
+void manager::register_sink(logging::sinks::sink_ptr sink)
 {
   std::lock_guard<std::mutex> lock(mutex_);
   sinks_.emplace(sink->name(), sink);
 }
 
-void logger::deregister_sink(logging::sinks::sink_ptr sink)
+void manager::deregister_sink(logging::sinks::sink_ptr sink)
 {
   if (sink != nullptr) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -111,13 +111,13 @@ void logger::deregister_sink(logging::sinks::sink_ptr sink)
   }
 }
 
-void logger::deregister_sink(const std::string& sink_name)
+void manager::deregister_sink(const std::string& sink_name)
 {
   std::lock_guard<std::mutex> lock(mutex_);
   sinks_.erase(sink_name);
 }
 
-logging::sinks::sink_ptr logger::get_sink(const std::string& sink_name)
+logging::sinks::sink_ptr manager::get_sink(const std::string& sink_name)
 {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!sinks_.empty()) {
@@ -129,7 +129,7 @@ logging::sinks::sink_ptr logger::get_sink(const std::string& sink_name)
   return nullptr;
 }
 
-void logger::dispatch()
+void manager::dispatch()
 {
   bool is_records_queue_empty = true;
   while(state_.load(std::memory_order_acquire) > 1 || !is_records_queue_empty) {

@@ -1,5 +1,5 @@
-#ifndef LOGGING_LOGGER_H
-#define LOGGING_LOGGER_H
+#ifndef LOGGING_MANAGER_H
+#define LOGGING_MANAGER_H
 
 #include <atomic>
 #include <condition_variable>
@@ -17,11 +17,11 @@
 
 namespace logging {
 
-class logger final
+class manager final
 {
 public:
-  ~logger();
-  static logger& instance();
+  ~manager();
+  static manager& instance();
   static void destroy();
   void start();
   void stop();
@@ -31,12 +31,12 @@ public:
   void deregister_sink(const std::string& sink_name);
   logging::sinks::sink_ptr get_sink(const std::string& sink_name);
 private:
-  logger();
-  logger(const logger&) = delete;
-  logger& operator=(const logger&) = delete;
+  manager();
+  manager(const manager&) = delete;
+  manager& operator=(const manager&) = delete;
   void dispatch();
 
-  static std::atomic<logger*> instance_;
+  static std::atomic<manager*> instance_;
   std::atomic<unsigned> state_; //0=off, 1=stopping, 2=starting, 3=on
   std::thread dispatcher_;
   std::mutex mutex_;
