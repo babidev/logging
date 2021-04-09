@@ -134,19 +134,18 @@ void manager::dispatch()
   bool is_records_queue_empty = true;
   while(state_.load(std::memory_order_acquire) > 1 || !is_records_queue_empty) {
     std::queue<std::tuple<logging::sinks::sink_ptr,logging::record>> buffer;
-    {
-      std::unique_lock<std::mutex> lock(mutex_);
-      if (records_.empty()) {
-        write_condition_.wait(lock);
-      }
-      std::swap(records_, buffer);
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (records_.empty()) {
+      write_condition_.wait(lock);
     }
+    std::swap(records_, buffer);
+    lock.unlock();
     while(!buffer.empty()) {
       auto item = buffer.front();
-      buffer.pop();
       std::get<0>(item)->write(std::get<1>(item));
+      buffer.pop();
     }
-    std::lock_guard<std::mutex> lock(mutex_);
+    lock.lock();
     is_records_queue_empty = records_.empty();
   }
 }
