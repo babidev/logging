@@ -13,9 +13,10 @@ logging_headers = [
   'include/logging/log.h',
   'include/logging/manager.h',
   'include/logging/record.h',
-  'include/logging/sinks/sink.h',
   'include/logging/sinks/cerr.h',
-  'include/logging/sinks/cout.h'
+  'include/logging/sinks/cout.h',
+  'include/logging/sinks/file.h',
+  'include/logging/sinks/sink.h'
 ]
 
 install_headers(
@@ -29,9 +30,10 @@ logging_sources = [
   'src/level.cpp',
   'src/log.cpp',
   'src/manager.cpp',
-  'src/sinks/sink.cpp',
   'src/sinks/cerr.cpp',
-  'src/sinks/cout.cpp'
+  'src/sinks/cout.cpp',
+  'src/sinks/file.cpp',
+  'src/sinks/sink.cpp'
 ]
 
 logging_library = static_library(
