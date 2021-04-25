@@ -7,20 +7,22 @@ std::atomic<manager*> manager::instance_;
 manager& manager::instance()
 {
   manager* instance = instance_.load(std::memory_order_acquire);
-  if (!instance) {
+  if (instance == nullptr) {
     manager* ptr = new manager();
     if (!instance_.compare_exchange_strong(instance, ptr,
       std::memory_order_release, std::memory_order_relaxed)) {
       delete ptr;
+    } else {
+      return *ptr;
     }
   }
-  return *instance_.load(std::memory_order_relaxed);
+  return *instance;
 }
 
 void manager::destroy()
 {
   manager* instance = instance_.load(std::memory_order_acquire);
-  if (instance) {
+  if (instance != nullptr) {
     manager* ptr = nullptr;
     if (instance_.compare_exchange_strong(instance, ptr,
       std::memory_order_release, std::memory_order_relaxed)) {
