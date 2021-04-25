@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "logging/formatters/formatter.h"
 #include "logging/level.h"
 #include "logging/record.h"
 
@@ -14,7 +15,8 @@ namespace sinks {
 class sink
 {
 public:
-  sink(const std::string& name, const logging::level level);
+  sink(const std::string& name, logging::formatters::formatter_ptr formatter,
+    const logging::level level);
   virtual ~sink() = default;
   virtual const std::string& name() const final;
   virtual logging::level level() const final;
@@ -22,10 +24,9 @@ public:
   virtual bool check_level(const logging::level level) const final;
   virtual void write(const logging::record& record) = 0;
 protected:
-  virtual std::string format(const logging::record& record);
-
   std::string name_;
   std::atomic<unsigned> level_;
+  logging::formatters::formatter_ptr formatter_;
 };
 
 using sink_ptr = std::shared_ptr<logging::sinks::sink>;

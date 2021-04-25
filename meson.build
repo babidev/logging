@@ -9,6 +9,8 @@ project(
 )
 
 logging_headers = [
+  'include/logging/formatters/formatter.h',
+  'include/logging/formatters/text.h',
   'include/logging/level.h',
   'include/logging/log.h',
   'include/logging/manager.h',
@@ -27,6 +29,7 @@ install_headers(
 logging_include_directories = include_directories('include')
 
 logging_sources = [
+  'src/formatters/text.cpp',
   'src/level.cpp',
   'src/log.cpp',
   'src/manager.cpp',

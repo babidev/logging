@@ -9,7 +9,8 @@ namespace sinks {
 class cerr final : public sink
 {
 public:
-  cerr(const std::string& name, const logging::level level);
+  cerr(const std::string& name, logging::formatters::formatter_ptr formatter,
+    const logging::level level);
   void write(const logging::record& record) override;
 };
 

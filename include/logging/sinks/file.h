@@ -11,7 +11,8 @@ namespace sinks {
 class file final : public sink
 {
 public:
-  file(const std::string& name, const logging::level level, const std::string& filename);
+  file(const std::string& name, logging::formatters::formatter_ptr formatter,
+    const logging::level level, const std::string& filename);
   ~file();
   void write(const logging::record& record) override;
 private:

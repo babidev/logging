@@ -3,8 +3,9 @@
 namespace logging {
 namespace sinks {
 
-file::file(const std::string& name, const logging::level level, const std::string& filename)
-  : sink(name, level)
+file::file(const std::string& name, logging::formatters::formatter_ptr formatter,
+    const logging::level level, const std::string& filename)
+  : sink(name, formatter, level)
 {
   output_.open(filename);
 }
@@ -16,8 +17,8 @@ file::~file()
 
 void file::write(const logging::record& record)
 {
-  if (output_.is_open()) {
-    output_ << format(record);
+  if (formatter_ && output_.is_open()) {
+    output_ << formatter_->format(record);
     output_.flush();
   }
 }
