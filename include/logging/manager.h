@@ -2,12 +2,10 @@
 #define LOGGING_MANAGER_H
 
 #include <atomic>
-#include <memory>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
 
-#include "logging/level.h"
 #include "logging/sinks/sink.h"
 
 namespace logging {
